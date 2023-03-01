@@ -1,0 +1,110 @@
+// ==UserScript==
+// @name         java代码自动规范
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       LUOYUCUN
+// @match        https://oj.gxu.edu.cn/contest/*/problem/*
+// @match        https://oj.gxu.edu.cn/problem/*
+// @match        https://www.dotcpp.com/oj/*
+// @match        https://www.luogu.com.cn/problem/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=dotcpp.com
+// @require      https://code.jquery.com/jquery-2.1.4.min.js
+// @grant        none
+// ==/UserScript==
+
+$(function() {
+    'use strict';
+    //自动选择java语言
+    //https://www.dotcpp.com/oj/*
+    let isDotcpp=window.location.href.indexOf("dotcpp")!=-1
+    let isGxu=window.location.href.indexOf("gxu")!=-1
+    let isLuogu=window.location.href.indexOf("luogu")!=-1
+    let yesstr,arrStr,codeareaStr,selectStr
+    //判断是哪个网站，给变量赋不同值
+    if(isDotcpp){
+        yesstr="ace_content"
+        arrStr="lang_chose"
+        codeareaStr="col-lg-12 ace_editor ace-tm"
+    }
+    else if(isGxu){
+        yesstr="CodeMirror-scroll"
+        selectStr="ivu-icon ivu-icon-arrow-down-b ivu-select-arrow"
+        arrStr="ivu-select-item"
+        codeareaStr="vue-codemirror-wrap"
+        //console.log("isGxu")
+    }
+    else if(isLuogu){
+        yesstr="ace_content"
+        codeareaStr="card problem-card padding-default"
+    }
+    let yes=document.getElementsByClassName(yesstr)[0]
+    //console.log(yesstr,":",yes)
+    if (yes!=null) {
+        if(!isLuogu){//洛谷自动识别语言，所以不用选
+            let arr
+            if(isDotcpp){//C语言网是id选择器
+                arr=document.getElementById(arrStr)
+            }
+            else{//gxuoj是类选择器
+                arr=document.getElementsByClassName(arrStr)[0]
+            }
+            for (let nodei of arr) {
+                if (nodei.innerText.toLowerCase().indexOf("java") != -1 && nodei.innerText.toLowerCase().indexOf("javascript") == -1) {
+                    if(isDotcpp){
+                        arr.value=nodei.value
+                        arr.dispatchEvent(new Event("change"))//针对select标签,模拟触发点击事件，当value赋值后，进行更新，chrome用
+                        //arr.fireEvent('onchange'),ie浏览器用
+                    }
+                    else{
+                        nodei.click()
+                    }
+                }
+            }
+        }
+        //使剪贴板的java代码符合Oj规范
+        let codearea = document.getElementsByClassName(codeareaStr)[0]
+        codearea.addEventListener('click', (event) => {
+            navigator.clipboard
+                .readText()//从剪贴板读出数据v
+                .then((v) => {
+                    let str = v.split("\n")//按行分隔代码
+                    let newstr = []
+                    let standard = 0 //记录代码是否已经是标准的，若是标准的，尽早结束
+                    for (let stri of str) {
+                        if (stri.indexOf("public class Main") != -1) {
+                            if (standard == 0)////如果剪贴板的代码已经是标准的，就不进行修改
+                                break;
+                        }
+                        if (stri.indexOf("package ") != -1) {
+                            standard = 1
+                            continue;
+                        }
+                        if (stri.indexOf("public class") != -1) {//将主类名规范化为Main
+                            standard = 1
+                            newstr += "public class Main {"
+                        } else {
+                            newstr += stri
+                        }
+                        newstr += "\n"
+                    }
+                    if (standard != 0) {//如果剪贴板的代码已经是标准的，就不进行修改
+                        navigator.clipboard.writeText(newstr)//向剪贴板中写入修改后的规范代码
+                            .then(
+                            () => {
+                                //console.log('java代码格式化成功');
+                            }
+                        ).catch(
+                            err => { // 如果用户没有授权，则抛出异常
+                                //console.error('无法复制此文本：', err);
+                            });
+                    }
+                }).catch((v) => {
+                //console.log("获取剪贴板内容失败: ", v);
+            });
+
+        });
+    }
+
+    // Your code here...
+})
