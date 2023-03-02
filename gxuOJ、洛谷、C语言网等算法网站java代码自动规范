@@ -17,9 +17,9 @@ $(function() {
     'use strict';
     //自动选择java语言
     //https://www.dotcpp.com/oj/*
-    let isDotcpp=window.location.href.indexOf("dotcpp")!=-1
-    let isGxu=window.location.href.indexOf("gxu")!=-1
-    let isLuogu=window.location.href.indexOf("luogu")!=-1
+    let isDotcpp=(window.location.href.indexOf("dotcpp")!=-1)&&(window.location.href.indexOf("sid")==-1)
+    let isGxu=(window.location.href.indexOf("gxu")!=-1)&&(window.location.href.indexOf("status")==-1)//注意查看题解时不执行脚本
+    let isLuogu=(window.location.href.indexOf("luogu")!=-1)
     let yesstr,arrStr,codeareaStr,selectStr
     //判断是哪个网站，给变量赋不同值
     if(isDotcpp){
@@ -32,7 +32,6 @@ $(function() {
         selectStr="ivu-icon ivu-icon-arrow-down-b ivu-select-arrow"
         arrStr="ivu-select-item"
         codeareaStr="vue-codemirror-wrap"
-        //console.log("isGxu")
     }
     else if(isLuogu){
         yesstr="ace_content"
@@ -104,7 +103,6 @@ $(function() {
             });
 
         });
-    }
 
-    // Your code here...
+    }
 })
